@@ -49,9 +49,34 @@ int Station::fillUp()
 	// NOTE: You may NOT modify any of the code outside of the TODOs or add any global or static
 	//   variables UNLESS it's required by your algorithm for #5 above.
 	/////////////////////////////////////////////////////////////////////////////////////////////
+	for (int i = 0; i < pumpsInStation; i++)
+	{
+		stationMutex->lock();
+		if ((freeMask & (1 << i)) == 0)
+		{
 
+			freeMask |= (1 << i);
+			stationMutex->unlock();
 
-	return 0;
+			pumps[i].fillTankUp();
+
+			stationMutex->lock();
+			freeMask &= ~(1 << i);
+			stationCondition->notify_one();
+			stationMutex->unlock();
+
+			this_thread::sleep_for(std::chrono::milliseconds((((carsInStation - 1) * 30) / pumpsInStation) - 30));
+
+			return 1;
+		}
+		stationMutex->unlock();
+	}
+
+	stationCondition->wait(std::unique_lock<std::mutex>(*stationMutex));
+
+	return -1;
+
+	
 }
 
 int Station::getPumpFillCount(int num)

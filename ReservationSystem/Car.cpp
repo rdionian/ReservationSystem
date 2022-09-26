@@ -57,7 +57,8 @@ void Car::startCar(void testACar(Car* car))
 	// TODO: Start the thread that will be used for the car
 	//(these will be joinable threads)
 	///////////////////////////////////////////////////////////////////////////
-	std::thread(startCar);
+	Car::thread = new std::thread(testACar, this);
+
 }
 
 void Car::waitForCarToStop(void)
@@ -65,6 +66,8 @@ void Car::waitForCarToStop(void)
 	///////////////////////////////////////////////////////////////////////////
 	// TODO: stop and clean up the car threads
 	///////////////////////////////////////////////////////////////////////////
+	Car::thread->join();
+	delete Car::thread;
 }
 
 void Car::setStationToUse(Station *myStation)
